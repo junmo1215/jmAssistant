@@ -32,7 +32,9 @@ def add_restaurant(name):
 def choose():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    rows = conn.execute("select name from restaurant;").fetchall()
+    rows = conn.execute("SELECT name FROM restaurant;").fetchall()
+    assert len(rows) != 0
+
     random.shuffle(rows)
     # for row in :
     #     result.append(row[0])
