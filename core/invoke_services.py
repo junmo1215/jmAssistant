@@ -61,6 +61,8 @@ def parse_parameters(service_name, function_name, params):
         index = param_format.find("{}")
 
     json_params = json.loads(param_format)
+    if json_params is None:
+        return {}
     return json_params
 
 def response(string):
