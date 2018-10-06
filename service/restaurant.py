@@ -23,11 +23,14 @@ def uninstall():
     os.remove(DB_NAME)
 
 def add_restaurant(name):
+    assert name is not None and name != ""
+
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     cur.executescript(INSERT_SQL.format(name))
     conn.commit()
     conn.close()
+    return "restaurant {} added success".format(name)
 
 def choose():
     conn = sqlite3.connect(DB_NAME)

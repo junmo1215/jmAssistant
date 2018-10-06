@@ -3,6 +3,7 @@
 import imp
 import json
 import sqlite3
+import traceback
 
 DB_NAME = "db/core.db"
 PARAMS_SPLIT_PATTERN = " "
@@ -22,7 +23,10 @@ def invoke(service_name, function_name, params=None):
 
     try:
         return func(**params)
+    # except AssertionError as ae:
+    #     return "[error]" + str(ae.__traceback__)
     except Exception as e:
+        traceback.print_exc()
         return "[error]" + str(e)
 
 def parse_parameters(service_name, function_name, params):
@@ -32,6 +36,7 @@ def parse_parameters(service_name, function_name, params):
     如果有多个参数使用PARAMS_SPLIT_PATTERN分隔不同的参数
 
     目前的做法是按照顺序依次往后面的参数中填充
+    params按照空格区分，所以单个params里面不能有空格
     """
     assert params is None or type(params) == str
 
@@ -42,7 +47,7 @@ def parse_parameters(service_name, function_name, params):
     param_format = cur.fetchone()[0]
 
     # 将传进来的参数转换成list
-    if params is not None:
+    if params is not None and params != "":
         list_params = params.split(PARAMS_SPLIT_PATTERN)
     else:
         list_params = []
@@ -54,16 +59,35 @@ def parse_parameters(service_name, function_name, params):
         if len(list_params) > 0:
             item = list_params[0]
             list_params.remove(item)
+            if item == "":
+                continue
             item = '"{}"'.format(item)
         else:
             item = "null"
         param_format = param_format[:index + 2].replace("{}", item) + param_format[index+2:]
         index = param_format.find("{}")
 
+    # print(param_format)
     json_params = json.loads(param_format)
     if json_params is None:
         return {}
     return json_params
 
-def response(string):
-    return ""
+def run_command(command):
+    service_name = ""
+    function_name = ""
+    params = ""
+    for key_word, function in command_to_function_list:
+        if command.find(key_word) >= 0:
+            service_name, function_name = function.split(" ")[:2]
+            params = command[len(key_word):].strip()
+
+    if service_name == "" or function_name == "":
+        return "no such service/function"
+    # print(service_name, function_name, params)
+    return invoke(service_name, function_name, params)
+
+command_to_function_list = [
+    ("增加餐馆", "restaurant add_restaurant"),
+    ("吃啥", "restaurant choose"),
+]

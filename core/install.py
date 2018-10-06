@@ -27,6 +27,9 @@ def get_all_func():
             if not callable(func):
                 continue
 
+            if function_name == "install":
+                func()
+
             param = {}
             param_names = func.__code__.co_varnames
             for i in range(func.__code__.co_argcount):
@@ -34,7 +37,7 @@ def get_all_func():
             str_params = str(param).replace("'", '"')
             # print(file_name, function_name, str_params)
             result.append((file_name, function_name, str_params))
-    
+
     return result
 
 def main():
