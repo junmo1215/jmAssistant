@@ -5,6 +5,8 @@ import json
 import sqlite3
 import traceback
 
+import globaVariable
+
 DB_NAME = "db/core.db"
 PARAMS_SPLIT_PATTERN = " "
 
@@ -73,7 +75,13 @@ def parse_parameters(service_name, function_name, params):
         return {}
     return json_params
 
+def authority_user_right(service_name, function_name):
+    return globaVariable.gContent["from_user"] == ""
+
 def run_command(command):
+    """
+    这个函数保证没有跑出异常，在调用服务过程中的异常会转变为字符串返回
+    """
     service_name = ""
     function_name = ""
     params = ""
@@ -81,6 +89,10 @@ def run_command(command):
         if command.find(key_word) >= 0:
             service_name, function_name = function.split(" ")[:2]
             params = command[len(key_word):].strip()
+            break
+
+    if authority_user_right(service_name, function_name) == False:
+        return "you are not my boss, can't use the service"
 
     if service_name == "" or function_name == "":
         return "no such service/function"
