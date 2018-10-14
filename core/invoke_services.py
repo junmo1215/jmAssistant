@@ -5,7 +5,10 @@ import json
 import sqlite3
 import traceback
 
-import globaVariable
+try:
+    import globalVariable
+except:
+    from jmAssistant import globalVariable
 
 DB_NAME = "db/core.db"
 PARAMS_SPLIT_PATTERN = " "
@@ -76,7 +79,7 @@ def parse_parameters(service_name, function_name, params):
     return json_params
 
 def authority_user_right(service_name, function_name):
-    return globaVariable.gContent["from_user"] == ""
+    return globalVariable.gContext["from_user"] == ""
 
 def run_command(command):
     """

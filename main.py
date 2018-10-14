@@ -2,7 +2,7 @@
 
 from interface import cmd, wechat
 
-INTERFACE = "wechat"
+INTERFACE = "cmd"
 
 def main():
     if INTERFACE == 'cmd':

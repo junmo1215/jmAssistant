@@ -5,7 +5,7 @@ from time import time
 import xml.etree.ElementTree as et
 import hashlib
 
-import globaVariable
+import globalVariable
 from config import WechatBotConfig
 from core.invoke_services import run_command
 
@@ -31,7 +31,7 @@ def wechat_authority(request):
 
 @app.route('/wechat_bot',methods=['GET','POST'])
 def wechat():
-    globaVariable.init()
+    globalVariable.init()
     # get和post请求都要验证请求来源，debug模式除外
     if app.debug == False and wechat_authority(request) == False:
         return ""
@@ -50,7 +50,7 @@ def wechat():
         fromUser = xml_rec.find('FromUserName').text
         MsgType = xml_rec.find('MsgType').text
         Content = xml_rec.find('Content').text
-        globaVariable.gContent["from_user"] = fromUser
+        globalVariable.gContext["from_user"] = fromUser
         resp = run_command(Content)
         # MsgId = xml_rec.find('MsgId').text
 

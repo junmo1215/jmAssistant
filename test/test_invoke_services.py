@@ -11,5 +11,5 @@ def test_base():
 
 def test_invoke_restaurant():
     assert invoke("restaurant", "install") is None
-    assert invoke("restaurant", "add_restaurant", "aaa") is None
+    assert invoke("restaurant", "add_restaurant", "aaa") == "restaurant aaa added success"
     assert invoke("restaurant", "choose") == "aaa"
