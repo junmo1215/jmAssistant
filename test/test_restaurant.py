@@ -1,7 +1,7 @@
 # coding = UTF8
 
 from nose.tools import with_setup, raises
-from jmAssistant.service.restaurant import install, uninstall, add_restaurant, choose
+from service.restaurant import install, uninstall, add_restaurant, choose
 
 @with_setup(install, uninstall)
 def test_base():

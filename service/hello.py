@@ -1,5 +1,8 @@
 # coding = UTF8
 
+from core.common import interface_function
+
+@interface_function
 def hi(name1=None, name2=None):
     if name1 is None and name2 is None:
         return "hi, anonymous"

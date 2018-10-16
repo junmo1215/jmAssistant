@@ -3,9 +3,10 @@
 import os
 import imp
 import json
-import sqlite3
+# import inspect
 
-DB_NAME = "db/core.db"
+from pony.orm import commit, db_session, select
+from entity.coreEntity import Services
 
 def get_all_func():
     """
@@ -23,16 +24,28 @@ def get_all_func():
         for function_name in dir(service):
             if function_name.startswith("__"):
                 continue
+            
             func = eval("service.{}".format(function_name))
-            if not callable(func):
+            
+            # if not inspect.isfunction(func):
+            #     continue
+
+            # 由于在文件中会import一些函数进来，比较难区分是接口函数还是第三方库中引入的，因此给接口函数打上了interface_function标签。目前通过有没有这个标签来判断
+            try:
+                if func.is_interface_function:
+                    print(function_name)
+            except:
+                # print(function_name, False)
                 continue
 
+            # 执行每个服务的install函数
             if function_name == "install":
                 func()
 
+            # 解析接口函数的参数信息
             param = {}
-            param_names = func.__code__.co_varnames
-            for i in range(func.__code__.co_argcount):
+            param_names = func.co_varnames
+            for i in range(func.co_argcount):
                 param[param_names[i]] = {}
             str_params = str(param).replace("'", '"')
             # print(file_name, function_name, str_params)
@@ -41,30 +54,20 @@ def get_all_func():
     return result
 
 def main():
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
+    services = get_all_func()
+    # # print(services)
+    with db_session:
+        for service_name, function_name, params in services:
+            # 如果存在就不插入
+            if len(select(s for s in Services if s.service_name == service_name and s.function_name == function_name)) != 0:
+                continue
 
-    check_table_sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'services';"
-
-    create_db_sql = """
-    CREATE TABLE `services` (
-        `service_name`	TEXT NOT NULL,
-        `function_name`	TEXT NOT NULL,
-        `params`	TEXT NOT NULL
-    );
-    """
-
-    insert_sql = """
-    INSERT INTO `services`(`service_name`, `function_name`, `params`)
-    VALUES(?, ?, ?);
-    """
-
-    cur.execute(check_table_sql)
-    if not cur.fetchall():
-        cur.executescript(create_db_sql)
-    cur.executemany(insert_sql, get_all_func())
-    conn.commit()
-    conn.close()
+            Services(
+                service_name = service_name,
+                function_name = function_name,
+                params = params
+            )
+        commit()
 
 if __name__ == "__main__":
     main()

@@ -2,15 +2,12 @@
 
 import imp
 import json
-import sqlite3
 import traceback
+from pony.orm import db_session, select
 
-try:
-    import globalVariable
-except:
-    from jmAssistant import globalVariable
+import globalVariable
+from entity.coreEntity import Services
 
-DB_NAME = "db/core.db"
 PARAMS_SPLIT_PATTERN = " "
 
 def invoke(service_name, function_name, params=None):
@@ -28,8 +25,6 @@ def invoke(service_name, function_name, params=None):
 
     try:
         return func(**params)
-    # except AssertionError as ae:
-    #     return "[error]" + str(ae.__traceback__)
     except Exception as e:
         traceback.print_exc()
         return "[error]" + str(e)
@@ -45,11 +40,12 @@ def parse_parameters(service_name, function_name, params):
     """
     assert params is None or type(params) == str
 
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT params FROM services WHERE service_name = '{}' and function_name = '{}';".format(service_name, function_name))
-    # 读取指定功能需要填充的参数
-    param_format = cur.fetchone()[0]
+    with db_session:
+        service = select(s for s in Services if s.service_name == service_name and s.function_name == function_name)[:]
+        assert len(service) == 1
+        service = service[0]
+        # 读取指定功能需要填充的参数
+        param_format = service.params
 
     # 将传进来的参数转换成list
     if params is not None and params != "":
@@ -79,7 +75,8 @@ def parse_parameters(service_name, function_name, params):
     return json_params
 
 def authority_user_right(service_name, function_name):
-    return globalVariable.gContext["from_user"] == ""
+    return True
+    # return globalVariable.gContext["from_user"] == ""
 
 def run_command(command):
     """

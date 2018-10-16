@@ -2,45 +2,37 @@
 
 import os
 import random
-import sqlite3
 
-DB_NAME = "db/restaurant.db"
-TABLE_NAME = "restaurant"
+from pony.orm import commit, db_session, select
 
-INSERT_SQL = """
-INSERT INTO restaurant(name)
-VALUES('{}');
-"""
+from core.common import interface_function
+from entity.restaurantEntity import Restaurant
 
+@interface_function
 def install():
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '{}';".format(TABLE_NAME))
-    if not cur.fetchall():
-        conn.executescript("CREATE TABLE restaurant(name varchar(100) NOT NULL);")
+    pass
 
+@interface_function
 def uninstall():
-    os.remove(DB_NAME)
+    # 这里使用drop table之后似乎单元测试不能通过，不知道是不是在sqlite里面记录了什么表格相关的信息
+    # Restaurant.drop_table(with_all_data=True)
+    with db_session:
+        for restaurant in Restaurant.select():
+            restaurant.delete()
 
+@interface_function
 def add_restaurant(name):
     assert name is not None and name != ""
+    with db_session:
+        Restaurant(name=name)
+        commit()
 
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.executescript(INSERT_SQL.format(name))
-    conn.commit()
-    conn.close()
     return "restaurant {} added success".format(name)
 
+@interface_function
 def choose():
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    rows = conn.execute("SELECT name FROM restaurant;").fetchall()
-    assert len(rows) != 0
-
-    random.shuffle(rows)
-    # for row in :
-    #     result.append(row[0])
-    return rows[0][0]
-
-
+    with db_session:
+        restaurants = list(Restaurant.select())
+        # print(restaurants, type(restaurants))
+    random.shuffle(restaurants)
+    return restaurants[0].name
