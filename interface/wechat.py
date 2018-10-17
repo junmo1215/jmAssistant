@@ -6,11 +6,11 @@ import xml.etree.ElementTree as et
 import hashlib
 
 import globalVariable
-from config import WechatBotConfig
+from config import WechatBotConfig, is_debug_mode
 from core.invoke_services import run_command
 
 app = Flask(__name__)
-app.debug = True
+app.debug = is_debug_mode
 
 response_text_format = "<xml><ToUserName><![CDATA[{}]]></ToUserName><FromUserName><![CDATA[{}]]></FromUserName><CreateTime>{}</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[{}]]></Content></xml>"
 

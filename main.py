@@ -1,8 +1,9 @@
 # coding = UTF8
 
 from interface import cmd, wechat
+import config
 
-INTERFACE = "cmd"
+INTERFACE = config.interface_mode
 
 def main():
     if INTERFACE == 'cmd':
