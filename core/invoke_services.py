@@ -6,7 +6,7 @@ import traceback
 from pony.orm import db_session, select
 
 import globalVariable
-from entity.coreEntity import Services
+from entity.coreEntity import Service, User
 
 PARAMS_SPLIT_PATTERN = " "
 
@@ -41,9 +41,13 @@ def parse_parameters(service_name, function_name, params):
     assert params is None or type(params) == str
 
     with db_session:
-        service = select(s for s in Services if s.service_name == service_name and s.function_name == function_name)[:]
-        assert len(service) == 1
-        service = service[0]
+        # service = select(s for s in Service if s.service_name == service_name and s.function_name == function_name)[:]
+        # assert len(service) == 1
+        # service = service[0]
+
+        service = Service.get(service_name=service_name, function_name=function_name)
+        assert service is not None
+
         # 读取指定功能需要填充的参数
         param_format = service.params
 
@@ -74,9 +78,19 @@ def parse_parameters(service_name, function_name, params):
         return {}
     return json_params
 
-def authority_user_right(service_name, function_name):
-    return True
-    # return globalVariable.gContext["from_user"] == ""
+# 验证用户是否有某个功能的权限
+@db_session
+def authority_user_right(service_name, function_name, user_name=None):
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
+    user = User.get(name=user_name)
+    if user is None:
+        return False
+
+    service = Service.get(service_name=service_name, function_name=function_name)
+    # return (service is not None) and (service in user.services)
+    return service in user.services
 
 def run_command(command):
     """
@@ -92,10 +106,11 @@ def run_command(command):
             break
 
     if authority_user_right(service_name, function_name) == False:
-        return "you are not my boss, can't use the service"
+        return "permission delay"
 
     if service_name == "" or function_name == "":
         return "no such service/function"
+
     # print(service_name, function_name, params)
     return invoke(service_name, function_name, params)
 

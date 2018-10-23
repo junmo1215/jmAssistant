@@ -10,4 +10,5 @@ sys.path.append(os.path.abspath('.'))
 
 :comment
 
+python install.py
 nosetests -v -s test/ --with-path=.

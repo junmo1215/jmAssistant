@@ -8,6 +8,8 @@ import hashlib
 import globalVariable
 from config import WechatBotConfig, is_debug_mode
 from core.invoke_services import run_command
+from entity.coreEntity import User
+from pony.orm import db_session
 
 app = Flask(__name__)
 app.debug = is_debug_mode
@@ -31,7 +33,6 @@ def wechat_authority(request):
 
 @app.route('/wechat_bot',methods=['GET','POST'])
 def wechat():
-    globalVariable.init()
     # get和post请求都要验证请求来源，debug模式除外
     if app.debug == False and wechat_authority(request) == False:
         return ""
@@ -46,15 +47,21 @@ def wechat():
         # print(xmldata)
         xml_rec = et.fromstring(xmldata)
 
-        ToUserName = xml_rec.find('ToUserName').text
-        fromUser = xml_rec.find('FromUserName').text
-        MsgType = xml_rec.find('MsgType').text
-        Content = xml_rec.find('Content').text
-        globalVariable.gContext["from_user"] = fromUser
-        resp = run_command(Content)
+        to_user_name = xml_rec.find('ToUserName').text
+        from_user_name = xml_rec.find('FromUserName').text
+        msg_type = xml_rec.find('MsgType').text
+        content = xml_rec.find('Content').text
+
+        with db_session:
+            from_user = User.get(wechat_open_id=from_user_name)
+        if from_user is None:
+            resp = "you are unregistered, contact admin to register"
+        else:
+            globalVariable.gContext["from_user"] = from_user.name
+            resp = run_command(content)
         # MsgId = xml_rec.find('MsgId').text
 
-        return response_text_format.format(fromUser, ToUserName, int(time()), resp)
+        return response_text_format.format(from_user_name, to_user_name, int(time()), resp)
 
 def main():
     app.run(host=WechatBotConfig.host, port=80)

@@ -6,7 +6,7 @@ import json
 # import inspect
 
 from pony.orm import commit, db_session, select
-from entity.coreEntity import Services
+from entity.coreEntity import Service
 
 def get_all_func():
     """
@@ -59,10 +59,13 @@ def main():
     with db_session:
         for service_name, function_name, params in services:
             # 如果存在就不插入
-            if len(select(s for s in Services if s.service_name == service_name and s.function_name == function_name)) != 0:
+            # if len(select(s for s in Service if s.service_name == service_name and s.function_name == function_name)) != 0:
+            #     continue
+            
+            if Service.get(service_name=service_name, function_name=function_name) is not None:
                 continue
 
-            Services(
+            Service(
                 service_name = service_name,
                 function_name = function_name,
                 params = params

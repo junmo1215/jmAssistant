@@ -1,8 +1,8 @@
 # coding = UTF8
 
 """
-this file is all same with config.py but without value
-when run with it, should fist rename this file to config.py and set config value
+this file is everything same as config.py except value
+when run with it, when useing these code, fist rename this file to config.py and then modify config value
 """
 
 class WechatBotConfig:
@@ -20,3 +20,6 @@ interface_mode = "cmd"
 # 是否是调试模式
 # 调试模式下不验证消息来源
 is_debug_mode = False
+
+# 管理员在系统里的名称
+admin = "admin"
