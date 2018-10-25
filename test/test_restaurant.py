@@ -13,4 +13,5 @@ def test_base():
 @raises(Exception)
 @with_setup(install, uninstall)
 def test_error():
+    uninstall()
     choose()

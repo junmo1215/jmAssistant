@@ -8,6 +8,7 @@ import json
 from pony.orm import commit, db_session, select
 from entity.coreEntity import Service, User
 import globalVariable
+from core.common import read_json_data
 
 def get_all_func():
     """
@@ -41,7 +42,7 @@ def get_all_func():
 
             # 执行每个服务的install函数
             if function_name == "install":
-                func()
+                func(with_data=True)
 
             # 解析接口函数的参数信息
             param = {}
@@ -54,6 +55,32 @@ def get_all_func():
 
     return result
 
+@db_session
+def add_user_and_rights():
+    # file_path = os.path.join(globalVariable.root_path, "datas", "core.json")
+    # if os.path.exists(file_path) == False:
+    #     return
+
+    # with open(file_path, "r", encoding="UTF8") as f:
+    #     core = json.load(f)
+
+    core = read_json_data("core.json")
+    service_user = core.get("Service_User", {})
+    # with db_session:
+    for user in core.get("User", []):
+        user_entity = User.get(**user)
+        if user_entity is None:
+            user_entity = User(**user)
+
+        if user_entity.name not in service_user:
+            continue
+        
+        for service in service_user[user_entity.name]:
+            service_entity = Service.get(**service)
+            if service_entity in user_entity.services:
+                continue
+
+            user_entity.services.add(service_entity)
 
 def main():
     # 将接口函数信息加入到数据库中
@@ -76,20 +103,7 @@ def main():
 
     # 将用户信息加入数据库中
     # 包含用户和相关的权限
-    with open(os.path.join(globalVariable.root_path, "datas", "core.json")) as f:
-        core = json.load(f)
-
-    service_user = core.get("Service_User", {})
-    with db_session:
-        for user in core.get("User", []):
-            user_entity = User(**user)
-
-            if user_entity.name not in service_user:
-                continue
-            
-            for service in service_user[user_entity.name]:
-                service_entity = Service.get(**service)
-                user_entity.services.add(service_entity)
+    add_user_and_rights()
 
     # commit()
 

@@ -5,12 +5,21 @@ import random
 
 from pony.orm import commit, db_session, select
 
-from core.common import interface_function
+import globalVariable
+from core.common import interface_function, read_json_data
 from entity.restaurantEntity import Restaurant
 
 @interface_function
-def install():
-    pass
+def install(with_data=None):
+    if with_data is None:
+        return
+
+    restaurant_datas = read_json_data("restaurant.json")
+
+    with db_session:
+        for restaurant in restaurant_datas["Restaurant"]:
+            if Restaurant.get(**restaurant) is None:
+                Restaurant(**restaurant)
 
 @interface_function
 def uninstall():
@@ -22,10 +31,12 @@ def uninstall():
 
 @interface_function
 def add_restaurant(name):
-    assert name is not None and name != ""
+    assert name is not None and name != "", "restaurant name is empty"
     with db_session:
-        Restaurant(name=name)
-        commit()
+        if Restaurant.get(name=name) is None:
+            Restaurant(name=name)
+        else:
+            return "restaurant {} already in database".format(name)
 
     return "restaurant {} added success".format(name)
 
@@ -34,5 +45,7 @@ def choose():
     with db_session:
         restaurants = list(Restaurant.select())
         # print(restaurants, type(restaurants))
+    assert len(restaurants) > 0, "no restaurant in database"
+
     random.shuffle(restaurants)
     return restaurants[0].name

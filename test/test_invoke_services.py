@@ -10,6 +10,7 @@ def test_base():
     assert invoke("hello", "hi", PARAMS_SPLIT_PATTERN.join(names)) == "hi, alice, bob" 
 
 def test_invoke_restaurant():
+    assert invoke("restaurant", "uninstall") is None
     assert invoke("restaurant", "install") is None
     assert invoke("restaurant", "add_restaurant", "aaa") == "restaurant aaa added success"
     assert invoke("restaurant", "choose") == "aaa"
