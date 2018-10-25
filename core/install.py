@@ -6,7 +6,8 @@ import json
 # import inspect
 
 from pony.orm import commit, db_session, select
-from entity.coreEntity import Service
+from entity.coreEntity import Service, User
+import globalVariable
 
 def get_all_func():
     """
@@ -53,7 +54,9 @@ def get_all_func():
 
     return result
 
+
 def main():
+    # 将接口函数信息加入到数据库中
     services = get_all_func()
     # # print(services)
     with db_session:
@@ -70,7 +73,25 @@ def main():
                 function_name = function_name,
                 params = params
             )
-        commit()
+
+    # 将用户信息加入数据库中
+    # 包含用户和相关的权限
+    with open(os.path.join(globalVariable.root_path, "datas", "core.json")) as f:
+        core = json.load(f)
+
+    service_user = core.get("Service_User", {})
+    with db_session:
+        for user in core.get("User", []):
+            user_entity = User(**user)
+
+            if user_entity.name not in service_user:
+                continue
+            
+            for service in service_user[user_entity.name]:
+                service_entity = Service.get(**service)
+                user_entity.services.add(service_entity)
+
+    # commit()
 
 if __name__ == "__main__":
     main()
