@@ -105,11 +105,11 @@ def run_command(command):
             params = command[len(key_word):].strip()
             break
 
-    if authority_user_right(service_name, function_name) == False:
+    if service_name == "" or function_name == "":
         return "permission delay"
 
-    if service_name == "" or function_name == "":
-        return "no such service/function"
+    if authority_user_right(service_name, function_name) == False:
+        return "permission delay"
 
     # print(service_name, function_name, params)
     return invoke(service_name, function_name, params)
