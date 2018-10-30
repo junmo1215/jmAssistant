@@ -1,6 +1,7 @@
 # coding = UTF8
 
 import os
+import imp
 import json
 import globalVariable
 
@@ -31,3 +32,10 @@ def read_json_data(file_name, dir_path = None):
         data = json.load(f)
 
     return data
+
+def get_function(file_path, function_name):
+    # 取出文件名字作为module名称
+    service_name = os.path.basename(file_path)[:-3]
+    service = imp.load_source(service_name, file_path)
+    func = eval("service.{}".format(function_name))
+    return func

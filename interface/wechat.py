@@ -6,13 +6,11 @@ import xml.etree.ElementTree as et
 import hashlib
 
 import globalVariable
+# from globalVariable import website
 from config import WechatBotConfig, is_debug_mode
 from core.invoke_services import run_command
 from entity.coreEntity import User
 from pony.orm import db_session
-
-app = Flask(__name__)
-app.debug = is_debug_mode
 
 response_text_format = "<xml><ToUserName><![CDATA[{}]]></ToUserName><FromUserName><![CDATA[{}]]></FromUserName><CreateTime>{}</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[{}]]></Content></xml>"
 
@@ -31,10 +29,10 @@ def wechat_authority(request):
     hascode = hashlib.sha1(s.encode('utf-8')).hexdigest()
     return hascode == signature
 
-@app.route('/wechat_bot',methods=['GET','POST'])
+# @website.route('/wechat_bot',methods=['GET','POST'])
 def wechat():
     # get和post请求都要验证请求来源，debug模式除外
-    if app.debug == False and wechat_authority(request) == False:
+    if is_debug_mode == False and wechat_authority(request) == False:
         return ""
 
     if request.method == 'GET':
@@ -63,5 +61,10 @@ def wechat():
 
         return response_text_format.format(from_user_name, to_user_name, int(time()), resp)
 
+# website.add_url_rule('/wechat_bot', '/wechat_bot', wechat, methods=['GET','POST'])
+# website.run()
+
 def main():
-    app.run(host=WechatBotConfig.host, port=80)
+    # website.run(host=WechatBotConfig.host, port=80)
+    # website.run()
+    pass

@@ -8,8 +8,9 @@ when run with it, when useing these code, fist rename this file to config.py and
 class WechatBotConfig:
     # 微信公众号页面的token，用来验证请求是否的确来自腾讯服务器
     token = ""
-    # 搭载腾讯公众号自动响应机器人的机器ip，不带端口号
+    # 搭载腾讯公众号自动响应机器人的机器ip
     host = ""
+    port = 80
 
 # 接受指令的接口模式
 # 目前支持
