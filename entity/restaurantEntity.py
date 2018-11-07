@@ -8,6 +8,7 @@ DB_PATH = os.path.join(globalVariable.root_path, 'db', 'restaurant.db')
 
 class Restaurant(db.Entity):
     name = orm.Required(str, unique=True)
+    score = orm.Required(int)
     # orm.PrimaryKey(name)
 
 db.bind(provider='sqlite', filename=DB_PATH, create_db=True)

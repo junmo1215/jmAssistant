@@ -117,4 +117,6 @@ def run_command(command):
 command_to_function_list = [
     ("增加餐馆", "restaurant add_restaurant"),
     ("吃啥", "restaurant choose"),
+    ("餐馆打分", "restaurant vote"),
+    ("餐馆列表", "restaurant list_all"),
 ]

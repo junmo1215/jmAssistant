@@ -2,3 +2,4 @@ flask
 pony
 # deal with problem: nosetests import ERROR 
 nose-pathmunge
+numpy

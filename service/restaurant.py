@@ -2,6 +2,7 @@
 
 import os
 import random
+import numpy as np
 
 from pony.orm import commit, db_session, select
 
@@ -34,11 +35,26 @@ def add_restaurant(name):
     assert name is not None and name != "", "restaurant name is empty"
     with db_session:
         if Restaurant.get(name=name) is None:
-            Restaurant(name=name)
+            Restaurant(name=name, score=5)
         else:
             return "restaurant {} already in database".format(name)
 
     return "restaurant {} added success".format(name)
+
+def softmax(scores):
+    scores -= np.max(scores)
+    return np.exp(scores) / np.sum(np.exp(scores))
+
+def sigmoid(scores):
+    return 1 / (1 + np.exp(-scores))
+
+def scores_to_priority(scores):
+    """
+    根据得分获得每个元素的概率
+    分数在0到10之间，所有元素概率和为1
+    """
+    scores = np.array(scores)
+    return softmax(sigmoid(scores - 5))
 
 @interface_function
 def choose():
@@ -47,5 +63,54 @@ def choose():
         # print(restaurants, type(restaurants))
     assert len(restaurants) > 0, "no restaurant in database"
 
-    random.shuffle(restaurants)
-    return restaurants[0].name
+    names = []
+    scores = []
+    for restaurant in restaurants:
+        names.append(restaurant.name)
+        scores.append(restaurant.score)
+
+    # p的结果类似 [0.3, 0.2, 0.4, 0.1]
+    # np.sum(p[:i+1])的值依次是 0.3 0.5 0.9 1
+    # 随机一个0到1之间的小数，依次跟sum从左到右比较
+    # 遇到第一个大于等于随机数的索引就是餐厅名字的索引
+    p = scores_to_priority(scores)
+    random_value = random.random()
+    for i in range(len(restaurants)):
+        if random_value <= np.sum(p[:i+1]):
+            return names[i]
+
+@interface_function
+def vote(name, score):
+    try:
+        score = int(score)
+    except:
+        return "score should be int"
+
+    with db_session:
+        restaurant = Restaurant.get(name=name)
+        assert restaurant is not None, "restaurant not found"
+
+        old_score = restaurant.score
+        old_score += score
+
+        # 分数限制在0到10之间
+        # 防止计算概率的时候过于不均匀
+        if old_score > 10:
+            old_score = 10
+        elif old_score < 0:
+            old_score = 0
+
+        restaurant.score = old_score
+
+    return "now score of {} is {}".format(name, old_score)
+
+@interface_function
+def list_all():
+    results = []
+    with db_session:
+        restaurants = Restaurant.select()
+
+        for restaurant in restaurants:
+            results.append("{}\t{}".format(restaurant.name, restaurant.score))
+
+    return "\n".join(results)
