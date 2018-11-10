@@ -3,17 +3,29 @@
 import os
 import imp
 import json
+import functools
 import globalVariable
 
 # 封装接口函数，用这个装饰器和其他的函数区分
 # 接口函数只能有这一个装饰器，并且不能再增加其他装饰器
-def interface_function(func):
-    def wrapper(*args, **kw):
-        return func(*args, **kw)
-    wrapper.is_interface_function = True
-    wrapper.co_varnames = func.__code__.co_varnames
-    wrapper.co_argcount = func.__code__.co_argcount
-    return wrapper
+def interface_function(original_function=None, key_words=[]):
+    def wrapper(function):
+        # print(function)
+        @functools.wraps(function)
+        def _wrapper(*args, **kwargs):
+            return function(*args, **kwargs)
+
+        _wrapper.is_interface_function = True
+        _wrapper.key_words = key_words
+
+        _wrapper.co_varnames = function.__code__.co_varnames
+        _wrapper.co_argcount = function.__code__.co_argcount
+        return _wrapper
+
+    if original_function is None:
+        return wrapper
+
+    return wrapper(original_function)
 
 def read_json_data(file_name, dir_path = None):
     """

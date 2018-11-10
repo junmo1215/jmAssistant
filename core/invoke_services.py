@@ -6,7 +6,7 @@ import traceback
 from pony.orm import db_session, select
 
 import globalVariable
-from entity.coreEntity import Service, User
+from entity.coreEntity import Service, User, KeyWord
 
 PARAMS_SPLIT_PATTERN = " "
 
@@ -99,11 +99,16 @@ def run_command(command):
     service_name = ""
     function_name = ""
     params = ""
-    for key_word, function in command_to_function_list:
-        if command.find(key_word) >= 0:
-            service_name, function_name = function.split(" ")[:2]
-            params = command[len(key_word):].strip()
-            break
+
+    with db_session:
+        for key_word in list(KeyWord.select()):
+            # print(key_word)
+            if command.find(key_word.key_word) >= 0:
+                # service_name, function_name = function.split(" ")[:2]
+                service_name = key_word.service.service_name
+                function_name = key_word.service.function_name
+                params = command[len(key_word.key_word):].strip()
+                break
 
     if service_name == "" or function_name == "":
         return "permission delay"
@@ -113,10 +118,3 @@ def run_command(command):
 
     # print(service_name, function_name, params)
     return invoke(service_name, function_name, params)
-
-command_to_function_list = [
-    ("增加餐馆", "restaurant add_restaurant"),
-    ("吃啥", "restaurant choose"),
-    ("餐馆打分", "restaurant vote"),
-    ("餐馆列表", "restaurant list_all"),
-]

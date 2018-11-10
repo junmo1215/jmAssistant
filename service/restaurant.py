@@ -10,6 +10,10 @@ import globalVariable
 from core.common import interface_function, read_json_data
 from entity.restaurantEntity import Restaurant
 
+INIT_SCORE = 5
+MAX_SCORE = 10
+MIN_SCORE = 0
+
 @interface_function
 def install(with_data=None):
     if with_data is None:
@@ -30,7 +34,7 @@ def uninstall():
         for restaurant in Restaurant.select():
             restaurant.delete()
 
-@interface_function
+@interface_function(key_words=["增加餐馆"])
 def add_restaurant(name):
     assert name is not None and name != "", "restaurant name is empty"
     with db_session:
@@ -54,9 +58,9 @@ def scores_to_priority(scores):
     分数在0到10之间，所有元素概率和为1
     """
     scores = np.array(scores)
-    return softmax(sigmoid(scores - 5))
+    return softmax(sigmoid(scores - INIT_SCORE))
 
-@interface_function
+@interface_function(key_words=["吃啥", "吃什么"])
 def choose():
     with db_session:
         restaurants = list(Restaurant.select())
@@ -79,7 +83,7 @@ def choose():
         if random_value <= np.sum(p[:i+1]):
             return names[i]
 
-@interface_function
+@interface_function(key_words=["餐馆打分"])
 def vote(name, score):
     try:
         score = int(score)
@@ -95,16 +99,16 @@ def vote(name, score):
 
         # 分数限制在0到10之间
         # 防止计算概率的时候过于不均匀
-        if old_score > 10:
-            old_score = 10
-        elif old_score < 0:
-            old_score = 0
+        if old_score > MAX_SCORE:
+            old_score = MAX_SCORE
+        elif old_score < MIN_SCORE:
+            old_score = MIN_SCORE
 
         restaurant.score = old_score
 
     return "now score of {} is {}".format(name, old_score)
 
-@interface_function
+@interface_function(key_words=["餐馆列表"])
 def list_all():
     results = []
     with db_session:

@@ -6,7 +6,7 @@ import json
 # import inspect
 
 from pony.orm import commit, db_session, select
-from entity.coreEntity import Service, User
+from entity.coreEntity import Service, User, KeyWord
 import globalVariable
 from core.common import read_json_data
 
@@ -35,7 +35,7 @@ def get_all_func():
             # 由于在文件中会import一些函数进来，比较难区分是接口函数还是第三方库中引入的，因此给接口函数打上了interface_function标签。目前通过有没有这个标签来判断
             try:
                 if func.is_interface_function:
-                    print(function_name)
+                    print(function_name, func.key_words)
             except:
                 # print(function_name, False)
                 continue
@@ -51,19 +51,12 @@ def get_all_func():
                 param[param_names[i]] = {}
             str_params = str(param).replace("'", '"')
             # print(file_name, function_name, str_params)
-            result.append((file_name, function_name, str_params))
+            result.append((file_name, function_name, str_params, func.key_words))
 
     return result
 
 @db_session
 def add_user_and_rights():
-    # file_path = os.path.join(globalVariable.root_path, "datas", "core.json")
-    # if os.path.exists(file_path) == False:
-    #     return
-
-    # with open(file_path, "r", encoding="UTF8") as f:
-    #     core = json.load(f)
-
     core = read_json_data("core.json")
     service_user = core.get("Service_User", {})
     # with db_session:
@@ -87,19 +80,26 @@ def main():
     services = get_all_func()
     # # print(services)
     with db_session:
-        for service_name, function_name, params in services:
+        for service_name, function_name, params, key_words in services:
             # 如果存在就不插入
-            # if len(select(s for s in Service if s.service_name == service_name and s.function_name == function_name)) != 0:
-            #     continue
-            
-            if Service.get(service_name=service_name, function_name=function_name) is not None:
-                continue
+            service = Service.get(service_name=service_name, function_name=function_name)
 
-            Service(
-                service_name = service_name,
-                function_name = function_name,
-                params = params
-            )
+            if service is None:
+                service = Service(
+                    service_name = service_name,
+                    function_name = function_name,
+                    params = params
+                )
+
+            # 增加每个服务接口对应的关键字
+            for key_word in key_words:
+                if KeyWord.get(key_word=key_word) is not None:
+                    continue
+
+                KeyWord(
+                    key_word = key_word,
+                    service = service
+                )
 
     # 将用户信息加入数据库中
     # 包含用户和相关的权限
