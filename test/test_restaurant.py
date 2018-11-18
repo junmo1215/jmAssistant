@@ -3,7 +3,7 @@
 import numpy as np
 
 from nose.tools import with_setup, raises
-from service.restaurant import install, uninstall, add_restaurant, choose, vote, scores_to_priority, list_all
+from service.restaurant import install, uninstall, add_restaurant, choose, vote, scores_to_priority, list_all, remove_restaurant
 
 @with_setup(install, uninstall)
 def test_base():
@@ -60,3 +60,9 @@ def test_priotity():
         # 降低测试次数，增大允许的误差为5%，实际测试超过2%的都不太多
         assert abs(stat[str(i)] / count - p[i]) < 0.05
 
+@with_setup(install, uninstall)
+def test_remove():
+    add_restaurant("asd")
+    assert remove_restaurant("asds") == "restaurant asds not exists"
+    assert remove_restaurant("asd") == "restaurant asd remove success"
+    assert remove_restaurant("asd") == "restaurant asd not exists"

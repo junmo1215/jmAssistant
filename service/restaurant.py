@@ -45,6 +45,18 @@ def add_restaurant(name):
 
     return "restaurant {} added success".format(name)
 
+@interface_function(key_words=["删除餐馆"])
+def remove_restaurant(name):
+    assert name is not None and name != "", "restaurant name is empty"
+
+    with db_session:
+        restaurant = Restaurant.get(name=name)
+        if restaurant is not None:
+            restaurant.delete()
+            return "restaurant {} remove success".format(name)
+        else:
+            return "restaurant {} not exists".format(name)
+
 def softmax(scores):
     scores -= np.max(scores)
     return np.exp(scores) / np.sum(np.exp(scores))
@@ -118,3 +130,5 @@ def list_all():
             results.append("{}\t{}".format(restaurant.name, restaurant.score))
 
     return "\n".join(results)
+
+
