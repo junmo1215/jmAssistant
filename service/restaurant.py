@@ -35,22 +35,29 @@ def uninstall():
             restaurant.delete()
 
 @interface_function(key_words=["增加餐馆"])
-def add_restaurant(name):
+def add_restaurant(name, user_name=None):
     assert name is not None and name != "", "restaurant name is empty"
+
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
     with db_session:
-        if Restaurant.get(name=name) is None:
-            Restaurant(name=name, score=5)
+        if Restaurant.get(user_name=user_name, name=name) is None:
+            Restaurant(user_name=user_name, name=name, score=5)
         else:
             return "restaurant {} already in database".format(name)
 
     return "restaurant {} added success".format(name)
 
 @interface_function(key_words=["删除餐馆"])
-def remove_restaurant(name):
+def remove_restaurant(name, user_name=None):
     assert name is not None and name != "", "restaurant name is empty"
 
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
     with db_session:
-        restaurant = Restaurant.get(name=name)
+        restaurant = Restaurant.get(user_name=user_name, name=name)
         if restaurant is not None:
             restaurant.delete()
             return "restaurant {} remove success".format(name)
@@ -73,9 +80,12 @@ def scores_to_priority(scores):
     return softmax(sigmoid(scores - INIT_SCORE))
 
 @interface_function(key_words=["吃啥", "吃什么"])
-def choose():
+def choose(user_name = None):
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
     with db_session:
-        restaurants = list(Restaurant.select())
+        restaurants = list(Restaurant.select(lambda r: r.user_name == user_name))
         # print(restaurants, type(restaurants))
     assert len(restaurants) > 0, "no restaurant in database"
 
@@ -96,14 +106,17 @@ def choose():
             return names[i]
 
 @interface_function(key_words=["餐馆打分"])
-def vote(name, score):
+def vote(name, score, user_name=None):
     try:
         score = int(score)
     except:
         return "score should be int"
 
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
     with db_session:
-        restaurant = Restaurant.get(name=name)
+        restaurant = Restaurant.get(user_name=user_name, name=name)
         assert restaurant is not None, "restaurant not found"
 
         old_score = restaurant.score
@@ -121,10 +134,13 @@ def vote(name, score):
     return "now score of {} is {}".format(name, old_score)
 
 @interface_function(key_words=["餐馆列表"])
-def list_all():
+def list_all(user_name=None):
+    if user_name is None:
+        user_name = globalVariable.gContext["from_user"]
+
     results = []
     with db_session:
-        restaurants = Restaurant.select()
+        restaurants = Restaurant.select(lambda r: r.user_name == user_name)
 
         for restaurant in restaurants:
             results.append("{}\t{}".format(restaurant.name, restaurant.score))
