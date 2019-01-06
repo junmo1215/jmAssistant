@@ -60,11 +60,3 @@ def wechat():
         # MsgId = xml_rec.find('MsgId').text
 
         return response_text_format.format(from_user_name, to_user_name, int(time()), resp)
-
-# website.add_url_rule('/wechat_bot', '/wechat_bot', wechat, methods=['GET','POST'])
-# website.run()
-
-def main():
-    # website.run(host=WechatBotConfig.host, port=80)
-    # website.run()
-    pass

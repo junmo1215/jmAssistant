@@ -1,8 +1,20 @@
 # coding = UTF8
 
+import os
+from flask import Blueprint, render_template, abort
+
+import config
 from core.common import interface_function
 from pony.orm import db_session
 from entity.coreEntity import User
+
+register_page = Blueprint('register_page', __name__,
+                        template_folder='templates',
+                        root_path=os.path.join(config.root_path, "web"))
+
+@register_page.route("/register")
+def register():
+    return render_template("register.html")
 
 @interface_function
 def install(with_data=None):

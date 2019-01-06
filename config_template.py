@@ -24,3 +24,10 @@ is_debug_mode = False
 
 # 管理员在系统里的名称
 admin = "admin"
+
+# jmAssistant根目录位置
+root_path = os.path.abspath("")
+
+# 访问web index页面的跳转地址
+jump_page = "https://www.google.com/"
+

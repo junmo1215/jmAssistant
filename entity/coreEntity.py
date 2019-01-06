@@ -17,7 +17,7 @@ class Service(db.Entity):
 
 class User(db.Entity):
     # 系统中的名字
-    name = orm.PrimaryKey(str)
+    name = orm.Required(str, unique=True)
     wechat_id = orm.Optional(str)
     wechat_open_id = orm.Optional(str)
     services = orm.Set(Service)
