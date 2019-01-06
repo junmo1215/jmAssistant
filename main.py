@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-from interface import cmd, wechat
+from interface import cmd, wechat, web
 import config
 from core.common import get_function
 
@@ -23,7 +23,8 @@ def start_web_site():
     )
 
 def main():
-    start_web_site()
+    # start_web_site()
+    web.main()
     if INTERFACE == 'cmd':
         cmd.main()
     elif INTERFACE == 'wechat':
